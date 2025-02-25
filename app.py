@@ -10,6 +10,8 @@ st.write('Transform your files between CSV and Excel formats with built-in data 
 
 uploaded_files = st.file_uploader('Upload your files (CSV and Excel):', type=['csv', 'xlsx'], accept_multiple_files=True)
 
+files_processed = False  
+
 if uploaded_files:
     for file in uploaded_files:
         file_ext = os.path.splitext(file.name)[-1].lower()
@@ -20,7 +22,7 @@ if uploaded_files:
             df = pd.read_excel(file)
         else:
             st.error(f'Unsupported file type: {file_ext}')
-            continue  # If file type is not supported, skip the iteration
+            continue  
 
         st.write(f'**File name:** {file.name}')
         st.write(f'**File Size:** {file.size / 1024:.2f} KB')
@@ -29,6 +31,8 @@ if uploaded_files:
         st.dataframe(df.head())
 
         st.subheader('Data Cleaning Options')
+        cleaned = False 
+
         if st.checkbox(f'Clean data for {file.name}'):
             col1, col2 = st.columns(2)
 
@@ -36,12 +40,14 @@ if uploaded_files:
                 if st.button(f'Remove Duplicates from {file.name}'):
                     df.drop_duplicates(inplace=True)
                     st.write('Duplicates removed!')
+                    cleaned = True  # ✅ Data clean ho gaya
 
             with col2:
                 if st.button(f'Fill missing values for {file.name}'):
                     numeric_cols = df.select_dtypes(include=['number']).columns
                     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
                     st.write('Missing values have been filled!')
+                    cleaned = True  # ✅ Data clean ho gaya
 
         st.subheader('Select Columns to Convert')
         columns = st.multiselect(f'Choose columns for {file.name}', df.columns, default=df.columns)
@@ -71,5 +77,8 @@ if uploaded_files:
                 file_name=file_name,
                 mime=mime_type
             )
+            files_processed = True  
 
-st.success('All files processed!')
+
+if files_processed:
+    st.success('All files processed successfully! 🎉')
